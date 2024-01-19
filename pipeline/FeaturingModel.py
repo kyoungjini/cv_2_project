@@ -30,7 +30,6 @@ class FeaturingModel:
                  useGPU: bool = False,
                  segformer_path: str = "mattmdjaga/segformer_b2_clothes",
                  classifier_path: str = "./checkpoint/classifier_mobilenetv3.pt",
-                 original_class_num: int = 19,
                  classifier_input_size: int = 448
                  ):
         self.cpu_device = torch.device("cpu")
