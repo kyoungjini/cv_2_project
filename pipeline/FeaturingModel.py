@@ -8,11 +8,13 @@ import torch.nn as nn
 from transformers import SegformerImageProcessor, AutoModelForSemanticSegmentation
 from typing import *
 
+from pipeline.Unnormaliz import UnNormalize
+
 PART_LABEL = {
     "upper":[4, 7],
     "lower":[5, 6],
     #"shoes":[9, 10],
-    #"hair":[1],
+    #"hat":[1],
     "hair": [2],
     "skin": [11, 12, 13, 14, 15],
 }
@@ -27,7 +29,7 @@ class FeaturingModel:
     def __init__(self,
                  useGPU: bool = False,
                  segformer_path: str = "mattmdjaga/segformer_b2_clothes",
-                 classifier_path: str = "./classifier_mobilenetv3.pt",
+                 classifier_path: str = "./checkpoint/classifier_mobilenetv3.pt",
                  original_class_num: int = 19,
                  classifier_input_size: int = 448
                  ):
@@ -40,8 +42,6 @@ class FeaturingModel:
         self.segformer_processor = SegformerImageProcessor.from_pretrained(segformer_path)
         self.segformer_model = AutoModelForSemanticSegmentation.from_pretrained(segformer_path)
 
-        #self.classifier_model = models.mobilenet_v3_large(num_classes=original_class_num)
-        #self.classifier_model.load_state_dict(classifier_path)
         self.classifier_model = torch.load(classifier_path, map_location=self.device)
         self.classifier_model = self.classifier_model.features
 
@@ -54,6 +54,7 @@ class FeaturingModel:
                                           torchvision.transforms.Resize((self.classifier_input_size)*2),
                                           transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
                                           ])
+        self.unnormalize = UnNormalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 
 
     def getPart(self,
@@ -106,7 +107,7 @@ class FeaturingModel:
 
             features["last_activation_map"] = torch.flatten(output_classifier).to(self.cpu_device)
             features["gram_matrix"] = self.gram_matrix(output_classifier).to(self.cpu_device)
-            features["average_rgb"] = output_classifier.squeeze(0).mean(dim=-1).mean(dim=-1)
+            features["average_rgb"] = 255*self.unnormalize(input_classifier).squeeze(0).mean(dim=-1).mean(dim=-1)
 
             result[name] = features
 
@@ -114,4 +115,5 @@ class FeaturingModel:
 
 if __name__=="__main__":
     model = FeaturingModel()
-    print(model("test.jpg"))
+    feature = model("../test_image/test.jpg")
+    print(feature["hair"]["average_rgb"])
