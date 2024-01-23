@@ -25,15 +25,28 @@ COLOR_SPACE_MAP = {
     'RGBA':4
 }
 
-def save_feature(model, x, path, device):
-    torch.save(model(x).to(device), path)
+def save_feature(feature, path):
+    torch.save(feature, path)
+
+
+class ClothClassificationModel(nn.Module):
+    def __init__(self, num_classes=20):
+        super(ClothClassificationModel, self).__init__()
+        self.backbone = models.efficientnet_b0(pretrained=True)
+        self.classifier = nn.Linear(1000, num_classes)
+
+    def forward(self, x):
+        x = self.backbone(x)
+        x = self.classifier(x)
+        return x
+
 
 class FeaturingModel:
     def __init__(self,
                  useGPU: bool = False,
                  segformer_path: str = "mattmdjaga/segformer_b2_clothes",
                  classifier_path: str = "./checkpoint/classifier_mobilenetv3.pt",
-                 classifier_input_size: int = 448
+                 classifier_input_size: int = 224
                  ):
         self.cpu_device = torch.device("cpu")
         self.device = torch.device("cpu")
@@ -44,8 +57,8 @@ class FeaturingModel:
         self.segformer_processor = SegformerImageProcessor.from_pretrained(segformer_path)
         self.segformer_model = AutoModelForSemanticSegmentation.from_pretrained(segformer_path)
 
-        self.classifier_model = torch.load(classifier_path, map_location=self.device)
-        self.classifier_model = self.classifier_model.features
+        self.classifier_model = ClothClassificationModel().to(self.device)
+        self.classifier_model = self.classifier_model.backbone.features
 
         self.classifier_input_size = classifier_input_size
 
@@ -116,7 +129,11 @@ class FeaturingModel:
         return result
 
 if __name__=="__main__":
+    import time
     model = FeaturingModel()
+    oldtime = time.time()
     feature = model("../test_image/test.jpg")
+    print(f"Duartion : {str(time.time()-oldtime)}sec")
     print(feature["hair"]["gram_matrix"].shape)
     print(feature["hair"]["last_activation_volume"].shape)
+    save_feature(feature, "./feature.pt")
