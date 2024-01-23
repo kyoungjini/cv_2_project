@@ -25,6 +25,9 @@ COLOR_SPACE_MAP = {
     'RGBA':4
 }
 
+def save_feature(model, x, path, device):
+    torch.save(model(x).to(device), path)
+
 class FeaturingModel:
     def __init__(self,
                  useGPU: bool = False,
@@ -104,7 +107,7 @@ class FeaturingModel:
             input_classifier = self.transformer(part_image).unsqueeze(0).to(self.device)
             output_classifier = self.classifier_model(input_classifier)
 
-            features["last_activation_map"] = torch.flatten(output_classifier).to(self.cpu_device)
+            features["last_activation_volume"] = torch.flatten(output_classifier).to(self.cpu_device)
             features["gram_matrix"] = self.gram_matrix(output_classifier).to(self.cpu_device)
             features["average_rgb"] = 255*self.unnormalize(input_classifier).squeeze(0).mean(dim=-1).mean(dim=-1)
 
@@ -115,4 +118,5 @@ class FeaturingModel:
 if __name__=="__main__":
     model = FeaturingModel()
     feature = model("../test_image/test.jpg")
-    print(feature["hair"]["average_rgb"])
+    print(feature["hair"]["gram_matrix"].shape)
+    print(feature["hair"]["last_activation_volume"].shape)
