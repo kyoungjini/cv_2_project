@@ -45,7 +45,7 @@ class FeaturingModel:
     def __init__(self,
                  useGPU: bool = False,
                  segformer_path: str = "mattmdjaga/segformer_b2_clothes",
-                 classifier_path: str = "./checkpoint/classifier_mobilenetv3.pt",
+                 classifier_path: str = "./checkpoint/classifier_efficientnetb0.pt",
                  classifier_input_size: int = 224
                  ):
         self.cpu_device = torch.device("cpu")
@@ -57,7 +57,7 @@ class FeaturingModel:
         self.segformer_processor = SegformerImageProcessor.from_pretrained(segformer_path)
         self.segformer_model = AutoModelForSemanticSegmentation.from_pretrained(segformer_path)
 
-        self.classifier_model = ClothClassificationModel().to(self.device)
+        self.classifier_model = torch.load(classifier_path, map_location=self.device)
         self.classifier_model = self.classifier_model.backbone.features
 
         self.classifier_input_size = classifier_input_size
@@ -120,7 +120,7 @@ class FeaturingModel:
             input_classifier = self.transformer(part_image).unsqueeze(0).to(self.device)
             output_classifier = self.classifier_model(input_classifier)
 
-            features["last_activation_volume"] = torch.flatten(output_classifier).to(self.cpu_device)
+            features["last_activation_volume"] = output_classifier.squeeze(0).to(self.cpu_device)
             features["gram_matrix"] = self.gram_matrix(output_classifier).to(self.cpu_device)
             features["average_rgb"] = 255*self.unnormalize(input_classifier).squeeze(0).mean(dim=-1).mean(dim=-1)
 
