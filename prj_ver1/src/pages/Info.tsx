@@ -43,7 +43,7 @@ export default function Info() {
             defaultValue={value}
             onChange={onChange}
           />
-          <span className="label-text text-xs">{value}</span>
+          <span className="text-xs label-text">{value}</span>
         </label>
       )),
     [pColors, selectedColor, onChange]
@@ -62,11 +62,11 @@ export default function Info() {
   return (
     <section className="mt-4">
       <Title>퍼스널컬러 정보</Title>
-      <div className="flex flex-col  justify-center mt-4">
+      <div className="flex flex-col justify-center mt-4">
         <Subtitle>Selected: {selectedColor}</Subtitle>
         <div className="flex flex-wrap p-4 mt-4">
           {radioInputsRows.map((row, rowIndex) => (
-            <div key={rowIndex} className="flex flex-grow">
+            <div key={rowIndex} className="flex flex-grow font-semibold">
               {row}
             </div>
           ))}
