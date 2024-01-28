@@ -97,8 +97,8 @@ class FeaturingModel:
         gram = torch.mm(x, x.t())
         return gram
 
-    def __call__(self, x: str, color_space: str = "RGB"):
-        image = Image.open(x).convert(color_space)
+    def __call__(self, x, color_space: str = "RGB"):
+        image = x.convert(color_space)
 
         # 전신 사진 분할
         inputs = self.segformer_processor(images=image, return_tensors="pt")
@@ -132,7 +132,7 @@ if __name__=="__main__":
     import time
     model = FeaturingModel()
     oldtime = time.time()
-    feature = model("../test_image/test.jpg")
+    feature = model(Image.open("../test_image/test.jpg"))
     print(f"Duartion : {str(time.time()-oldtime)}sec")
     print(feature["hair"]["gram_matrix"].shape)
     print(feature["hair"]["last_activation_volume"].shape)
