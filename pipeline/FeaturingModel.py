@@ -25,12 +25,28 @@ COLOR_SPACE_MAP = {
     'RGBA':4
 }
 
+def save_feature(feature, path):
+    torch.save(feature, path)
+
+
+class ClothClassificationModel(nn.Module):
+    def __init__(self, num_classes=20):
+        super(ClothClassificationModel, self).__init__()
+        self.backbone = models.efficientnet_b0(pretrained=True)
+        self.classifier = nn.Linear(1000, num_classes)
+
+    def forward(self, x):
+        x = self.backbone(x)
+        x = self.classifier(x)
+        return x
+
+
 class FeaturingModel:
     def __init__(self,
                  useGPU: bool = False,
                  segformer_path: str = "mattmdjaga/segformer_b2_clothes",
-                 classifier_path: str = "./checkpoint/classifier_mobilenetv3.pt",
-                 classifier_input_size: int = 448
+                 classifier_path: str = "./checkpoint/classifier_efficientnetb0.pt",
+                 classifier_input_size: int = 224
                  ):
         self.cpu_device = torch.device("cpu")
         self.device = torch.device("cpu")
@@ -42,7 +58,7 @@ class FeaturingModel:
         self.segformer_model = AutoModelForSemanticSegmentation.from_pretrained(segformer_path)
 
         self.classifier_model = torch.load(classifier_path, map_location=self.device)
-        self.classifier_model = self.classifier_model.features
+        self.classifier_model = self.classifier_model.backbone.features
 
         self.classifier_input_size = classifier_input_size
 
@@ -55,6 +71,10 @@ class FeaturingModel:
                                           ])
         self.unnormalize = UnNormalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 
+    def changeDevice(self, useGPU: bool):
+        self.device = torch.device("cpu")
+        if useGPU and torch.cuda.is_available():
+            self.device = torch.device("cuda")
 
     def getPart(self,
                 image_ori: Image.Image,
@@ -81,8 +101,8 @@ class FeaturingModel:
         gram = torch.mm(x, x.t())
         return gram
 
-    def __call__(self, x: str, color_space: str = "RGB"):
-        image = Image.open(x).convert(color_space)
+    def __call__(self, x, color_space: str = "RGB"):
+        image = x.convert(color_space)
 
         # 전신 사진 분할
         inputs = self.segformer_processor(images=image, return_tensors="pt")
@@ -104,7 +124,7 @@ class FeaturingModel:
             input_classifier = self.transformer(part_image).unsqueeze(0).to(self.device)
             output_classifier = self.classifier_model(input_classifier)
 
-            features["last_activation_map"] = torch.flatten(output_classifier).to(self.cpu_device)
+            features["last_activation_volume"] = output_classifier.squeeze(0).to(self.cpu_device)
             features["gram_matrix"] = self.gram_matrix(output_classifier).to(self.cpu_device)
             features["average_rgb"] = 255*self.unnormalize(input_classifier).squeeze(0).mean(dim=-1).mean(dim=-1)
 
@@ -113,6 +133,11 @@ class FeaturingModel:
         return result
 
 if __name__=="__main__":
+    import time
     model = FeaturingModel()
-    feature = model("../test_image/test.jpg")
-    print(feature["hair"]["average_rgb"])
+    oldtime = time.time()
+    feature = model(Image.open("../test_image/test.jpg"))
+    print(f"Duartion : {str(time.time()-oldtime)}sec")
+    print(feature["hair"]["gram_matrix"].shape)
+    print(feature["hair"]["last_activation_volume"].shape)
+    save_feature(feature, "./feature.pt")
