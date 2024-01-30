@@ -3,20 +3,20 @@ import type {ChangeEvent} from 'react'
 import {Title, Subtitle} from '../components'
 
 export default function Info() {
-  /* 퍼스널컬러 배열 */
+  /* 퍼스널컬러 배열 설정 */
   const pColors = useMemo(
     () => [
       '봄 웜 라이트',
       '봄 웜 브라이트',
-      '봄 웜 비비드',
+      //      '봄 웜 비비드',
       '여름 쿨 라이트',
       '여름 쿨 뮤트',
-      '여름 쿨 소프트',
+      //      '여름 쿨 소프트',
       '가을 웜 뮤트',
-      '가을 웜 소프트',
+      //      '가을 웜 소프트',
       '가을 웜 딥',
       '겨울 쿨 딥',
-      '겨울 쿨 클리어',
+      //      '겨울 쿨 클리어',
       '겨울 쿨 브라이트',
       '모름'
     ],
@@ -49,28 +49,35 @@ export default function Info() {
     [pColors, selectedColor, onChange]
   )
 
-  /* 라디오 버튼 3열로 맞추기 */
+  /* 라디오 버튼 2열로 맞추기 
   const radioInputsRows = useMemo(() => {
     const rows = []
-    for (let i = 0; i < radioInputs.length; i += 3) {
-      rows.push(radioInputs.slice(i, i + 3))
+    for (let i = 0; i < radioInputs.length; i += 2) {
+      if (i + 1 === radioInputs.length) {
+        rows.push([radioInputs[i]])
+      } else {
+        rows.push(radioInputs.slice(i, i + 2))
+        //  rows.push([radioInputs[i], radioInputs[i + 1]])
+      }
     }
+
     return rows
   }, [radioInputs])
+*/
 
   /* 결과 반환 */
   return (
-    <section className="mt-4">
+    <section className="mt-4 ml-5">
       <Title>퍼스널컬러 정보</Title>
-      <div className="flex flex-col justify-center mt-4">
+      <div className="flex flex-col mt-4">
         <Subtitle>Selected: {selectedColor}</Subtitle>
-        <div className="flex flex-wrap p-4 mt-4">
-          {radioInputsRows.map((row, rowIndex) => (
-            <div key={rowIndex} className="flex flex-grow font-semibold">
-              {row}
-            </div>
-          ))}
-        </div>
+      </div>
+      <div className="flex flex-col p-4 mt-4">
+        {radioInputs.map((row, rowIndex) => (
+          <div key={rowIndex} className="font-semibold">
+            {row}
+          </div>
+        ))}
       </div>
     </section>
   )

@@ -9,11 +9,14 @@ export default function App() {
       style={{
         backgroundColor: '#F8E4E1'
       }}>
+      {/* 상단바 태그 */}
       <Div
         height="7vh"
-        style={{borderBottom: '1px solid gray', paddingLeft: '20px', paddingTop: '5px'}}>
-        <p className="text-lg font-bold">[코디 추천해드립니당]</p>
+        style={{borderBottom: '1px solid gray'}}
+        className="flex items-center">
+        <p className="ml-4 text-lg font-bold">[코디 추천해드립니당]</p>
       </Div>
+      {/* 세 개 구역 감싸는 태그 */}
       <div
         className="flex"
         style={{
@@ -21,23 +24,29 @@ export default function App() {
           alignItems: 'center',
           overflowY: 'auto'
         }}>
+        {/* 1번 구역 태그 */}
         <Div
-          width="30%"
-          minWidth="30%"
-          height="90vh"
-          minHeight="90vh"
+          width="330px"
+          minWidth="330px"
+          height="95%"
           style={{borderRight: '1px solid gray'}}>
           <Info />
         </Div>
+        {/* 2번 구역 태그 */}
         <Div
-          width="37%"
-          minWidth="37%"
-          height="90vh"
-          minHeight="90vh"
+          width="550px"
+          minWidth="550px"
+          height="95%"
           style={{borderRight: '1px solid gray'}}>
           <MyImages />
         </Div>
-        <Div width="33%" minWidth="33%" height="90vh" minHeight="90vh">
+        {/* 3번 구역 태그 */}
+        <Div
+          width="400px"
+          minWidth="400px"
+          height="95%"
+          //style={{borderRight: '1px solid gray'}}
+        >
           <Result />
         </Div>
       </div>
