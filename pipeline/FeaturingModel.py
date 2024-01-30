@@ -71,6 +71,10 @@ class FeaturingModel:
                                           ])
         self.unnormalize = UnNormalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 
+    def changeDevice(self, useGPU: bool):
+        self.device = torch.device("cpu")
+        if useGPU and torch.cuda.is_available():
+            self.device = torch.device("cuda")
 
     def getPart(self,
                 image_ori: Image.Image,
