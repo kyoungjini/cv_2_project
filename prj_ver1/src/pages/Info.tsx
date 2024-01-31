@@ -67,7 +67,7 @@ export default function Info() {
 
   /* 결과 반환 */
   return (
-    <section className="mt-4 ml-5">
+    <section className="mt-4 ml-4">
       <Title>퍼스널컬러 정보</Title>
       <div className="flex flex-col mt-4">
         <Subtitle>Selected: {selectedColor}</Subtitle>

@@ -26,24 +26,24 @@ export default function App() {
         }}>
         {/* 1번 구역 태그 */}
         <Div
-          width="330px"
-          minWidth="330px"
+          width="280px"
+          minWidth="280px"
           height="95%"
           style={{borderRight: '1px solid gray'}}>
           <Info />
         </Div>
         {/* 2번 구역 태그 */}
         <Div
-          width="550px"
-          minWidth="550px"
+          width="500px"
+          minWidth="500px"
           height="95%"
           style={{borderRight: '1px solid gray'}}>
           <MyImages />
         </Div>
         {/* 3번 구역 태그 */}
         <Div
-          width="400px"
-          minWidth="400px"
+          width="500px"
+          minWidth="500px"
           height="95%"
           //style={{borderRight: '1px solid gray'}}
         >
