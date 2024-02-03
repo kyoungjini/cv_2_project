@@ -38,9 +38,9 @@ export default function MyImages() {
     formData.append('image', imageFile)
 
     // console.log(formData)
-    for (let value of formData.values()) {
-      console.log(value)
-    }
+    // for (let value of formData.values()) {
+    //   console.log(value)
+    // }
     try {
       const response = await axios.post('/api/upload/', formData, {
         headers: {
@@ -162,7 +162,7 @@ export default function MyImages() {
             className="hidden"
             type="file"
             accept="image/*"
-            // name="image"
+            name="image"
           />
         </div>
       </div>
