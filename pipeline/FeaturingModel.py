@@ -10,12 +10,18 @@ from typing import *
 
 from pipeline.Unnormaliz import UnNormalize
 
-PART_LABEL = {
+
+CLASS_NUM = 20
+
+CLOTHES_PART_LABEL = {
     "upper":[4, 7],
     "lower":[5, 6],
     #"shoes":[9, 10],
     #"hat":[1],
-    "hair": [2],
+}
+
+BODY_PART_LABEL = {
+    #"hair": [2],
     "skin": [11, 12, 13, 14, 15],
 }
 
@@ -30,13 +36,30 @@ def save_feature(feature, path):
 
 
 class ClothClassificationModel(nn.Module):
-    def __init__(self, num_classes=20):
+    def __init__(self, num_classes=CLASS_NUM, last_channel=1280, compressor_channel=320):
         super(ClothClassificationModel, self).__init__()
-        self.backbone = models.efficientnet_b0(pretrained=True)
-        self.classifier = nn.Linear(1000, num_classes)
+        backbone = models.efficientnet_b0(pretrained=True)
+
+        self.features = backbone.features
+        self.compressor = lambda x: x
+        if last_channel != compressor_channel:
+            self.compressor = nn.Conv2d(last_channel, compressor_channel, 1)
+
+        self.avgpool = nn.AdaptiveAvgPool2d(1)
+
+        self.classifier = nn.Linear(compressor_channel, num_classes)
 
     def forward(self, x):
-        x = self.backbone(x)
+        x = self.features(x)
+        # print(x.shape)
+        x = self.compressor(x)
+        # print(x.shape)
+
+        x = self.avgpool(x)
+        # print(x.shape)
+        x = torch.flatten(x, 1)
+        # print(x.shape)
+
         x = self.classifier(x)
         return x
 
@@ -58,7 +81,9 @@ class FeaturingModel:
         self.segformer_model = AutoModelForSemanticSegmentation.from_pretrained(segformer_path)
 
         self.classifier_model = torch.load(classifier_path, map_location=self.device)
-        self.classifier_model = self.classifier_model.backbone.features
+        self.classifier_compressor = self.classifier_model.compressor
+        self.classifier_model = self.classifier_model.features
+        self.avgpool = nn.AdaptiveAvgPool2d(1)
 
         self.classifier_input_size = classifier_input_size
 
@@ -101,7 +126,7 @@ class FeaturingModel:
         gram = torch.mm(x, x.t())
         return gram
 
-    def __call__(self, x, color_space: str = "RGB"):
+    def __call__(self, x, color_space: str = "RGB", only_clothes: bool = False):
         image = x.convert(color_space)
 
         # 전신 사진 분할
@@ -118,13 +143,18 @@ class FeaturingModel:
 
         # 분할 사진 Feature 추출 - 옷
         result = {}
+        PART_LABEL = CLOTHES_PART_LABEL
+        if not only_clothes:
+            PART_LABEL += BODY_PART_LABEL
+
         for name, labels in PART_LABEL.items():
             features = {}
             part_image = self.getPart(image, pred_seg, labels, image_channel=COLOR_SPACE_MAP[color_space])[0]
             input_classifier = self.transformer(part_image).unsqueeze(0).to(self.device)
             output_classifier = self.classifier_model(input_classifier)
+            output_classifier = self.classifier_compressor(output_classifier)
 
-            features["last_activation_volume"] = output_classifier.squeeze(0).to(self.cpu_device)
+            features["last_activation_volume"] = torch.flatten(self.avgpool(output_classifier), 1).squeeze(0).to(self.cpu_device)
             features["gram_matrix"] = self.gram_matrix(output_classifier).to(self.cpu_device)
             features["average_rgb"] = 255*self.unnormalize(input_classifier).squeeze(0).mean(dim=-1).mean(dim=-1)
 
@@ -136,8 +166,8 @@ if __name__=="__main__":
     import time
     model = FeaturingModel()
     oldtime = time.time()
-    feature = model(Image.open("../test_image/test.jpg"))
+    feature = model(Image.open("../test_image/test.jpg"), only_clothes=True)
     print(f"Duartion : {str(time.time()-oldtime)}sec")
-    print(feature["hair"]["gram_matrix"].shape)
-    print(feature["hair"]["last_activation_volume"].shape)
+    print(feature["upper"]["last_activation_volume"].shape)
+    print(feature["upper"]["gram_matrix"].shape)
     save_feature(feature, "./feature.pt")
