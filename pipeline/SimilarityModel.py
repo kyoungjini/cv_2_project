@@ -149,11 +149,22 @@ class SimilarityModel:
             for target_input in self.recommended[type]:
                 similarity_result[target_input] += self.getSimilarity(user_feature, target_input, type, personal_color)
 
-        return [k for k, v in sorted(similarity_result.items(), key=lambda item: item[1], reverse=True)][:k]
+        return [k for k, v in sorted(similarity_result.items(), key=lambda item: item[1], reverse=True)][:k], similarity_result
 
 
+if __name__=="__main__":
+    test_recommended = {
+        "upper":[],
+        "lower":[],
+    }
+    model = SimilarityModel(test_recommended, FeaturingModel())
 
+    user_inputs = []
+    for i in range(15, 20+1):
+        user_inputs.append(Image.open(f"../test/image/{i}.jpg").convert("RGB"))
 
-
-
+    topk, similarity_result = model(user_inputs, "upper")
+    print(topk)
+    print("\n")
+    print(similarity_result)
 

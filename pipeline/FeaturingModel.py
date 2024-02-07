@@ -163,11 +163,8 @@ class FeaturingModel:
         return result
 
 if __name__=="__main__":
-    import time
     model = FeaturingModel()
-    oldtime = time.time()
-    feature = model(Image.open("../test_image/test.jpg"), only_clothes=True)
-    print(f"Duartion : {str(time.time()-oldtime)}sec")
-    print(feature["upper"]["last_activation_volume"].shape)
-    print(feature["upper"]["gram_matrix"].shape)
-    save_feature(feature, "./feature.pt")
+    for i in range(0, 15+1):
+        feature = model(Image.open(f"../test/image/{i}.jpg"), only_clothes=True)
+        save_feature(feature, f"../test/features/feature{i}.pt")
+    print("Complete")
