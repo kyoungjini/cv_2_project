@@ -14,6 +14,18 @@ LAST_ACTIVATION_VOLUME = "last_activation_volume"
 GRAM_MATRIX = "gram_matrix"
 AVERAGE_RGB = "average_rgb"
 
+LOWER_DEFAULT_COLOR = [(0, 0, 0), (255, 255, 255), (156, 156, 155), (217, 217, 215), (83, 86, 91), (254, 255, 239), (0, 31, 98), (61, 63, 107), (97, 134, 176), (38, 58, 84), (35, 40, 51), (33, 35, 34)]
+
+PERSONAL_COLOR_RGB = {
+    "WSB":[(215, 86, 116), (240, 95, 86), (252, 141, 60), (249, 187, 43), (217, 199, 27), (119, 187, 76), (3, 165, 131), (1, 148, 160), (1, 125, 175), (77, 115, 186), (139, 99, 172), (171, 87, 146), (181, 24, 78), (221, 55, 55), (230, 109, 0), (238, 172, 1), (201, 187, 1), (74, 163, 21), (2, 140, 105), (1, 124, 140), (0, 87, 146), (1, 79, 157), (102, 61, 140), (137, 44, 114)],
+    "WSL":[(234, 185, 186), (233, 186, 170), (240, 205, 170), (240, 225, 182), (216, 214, 168), (164, 207, 183), (158, 205, 201), (165, 202, 216), (168, 183, 206), (183, 179, 204), (198, 175, 196), (223, 188, 199), (243, 140, 143), (255, 158, 125), (251, 184, 105), (237, 211, 103), (203, 202, 96), (115, 200, 156), (63, 171, 165), (82, 166, 192), (100, 145, 192), (142, 134, 189), (172, 126, 172), (217, 129, 149)],
+    "WAD":[(159, 26, 50), (166, 58, 26), (170, 102, 2), (164, 143, 1), (112, 125, 1), (0, 111, 61), (1, 97, 92), (2, 81, 110), (1, 63, 116), (51, 51, 114), (88, 37, 95), (128, 30, 75), (100, 41, 45), (110, 54, 37), (110, 74, 24), (106, 94, 26), (83, 85, 22), (24, 80, 55), (0, 68, 65), (1, 66, 81), (19, 51, 76), (48, 45, 76), (65, 41, 67), (92, 43, 62), (60, 47, 46), (66, 60, 47), (65, 59, 46), (38, 52, 52), (44, 48, 67), (38, 40, 48), (45, 41, 44)],
+    "WAM":[(185, 163, 166), (189, 162, 157), (201, 179, 161), (192, 183, 155), (185, 184, 154), (146, 175, 166), (148, 174, 176), (149, 173, 181), (147, 156, 171), (156, 154, 168), (163, 151, 163), (184, 163, 170), (200, 120, 123), (213, 137, 111), (213, 159, 97), (204, 182, 99), (174, 172, 95), (102, 169, 135), (73, 155, 149), (73, 138, 158), (89, 119, 155), (118, 111, 153), (139, 105, 139), (174, 111, 132), (109, 88, 89), (110, 88, 84), (119, 102, 86), (112, 104, 82), (110, 105, 81), (86, 110, 103), (82, 112, 114), (76, 96, 102), (77, 81, 93), (85, 80, 90), (89, 80, 89), (107, 89, 95), (156, 84, 87), (169, 97, 75), (169, 120, 61), (161, 142, 65), (133, 133, 59), (64, 130, 96), (27, 117, 112), (29, 100, 119), (51, 84, 115), (81, 77, 114), (102, 70, 103), (133, 76, 94)],
+    "CSL":[(234, 185, 186), (233, 186, 170), (240, 205, 170), (240, 225, 182), (216, 214, 168), (164, 207, 183), (158, 205, 201), (165, 202, 216), (168, 183, 206), (183, 179, 204), (198, 175, 196), (223, 188, 199), (243, 140, 143), (255, 158, 125), (251, 184, 105), (237, 211, 103), (203, 202, 96), (115, 200, 156), (63, 171, 165), (82, 166, 192), (100, 145, 192), (142, 134, 189), (172, 126, 172), (217, 129, 149)],
+    "CSM":[(185, 163, 166), (189, 162, 157), (201, 179, 161), (192, 183, 155), (185, 184, 154), (146, 175, 166), (148, 174, 176), (149, 173, 181), (147, 156, 171), (156, 154, 168), (163, 151, 163), (184, 163, 170), (200, 120, 123), (213, 137, 111), (213, 159, 97), (204, 182, 99), (174, 172, 95), (102, 169, 135), (73, 155, 149), (73, 138, 158), (89, 119, 155), (118, 111, 153), (139, 105, 139), (174, 111, 132), (109, 88, 89), (110, 88, 84), (119, 102, 86), (112, 104, 82), (110, 105, 81), (86, 110, 103), (82, 112, 114), (76, 96, 102), (77, 81, 93), (85, 80, 90), (89, 80, 89), (107, 89, 95), (156, 84, 87), (169, 97, 75), (169, 120, 61), (161, 142, 65), (133, 133, 59), (64, 130, 96), (27, 117, 112), (29, 100, 119), (51, 84, 115), (81, 77, 114), (102, 70, 103), (133, 76, 94)],
+    "CWB":[(194, 52, 69), (199, 81, 45), (220, 139, 7), (209, 183, 0), (153, 164, 1), (1, 137, 81), (0, 123, 117), (0, 106, 138), (0, 87, 146), (75, 72, 140), (116, 58, 122), (160, 54, 100), (181, 24, 78), (221, 55, 55), (230, 109, 0), (238, 172, 1), (201, 187, 1), (74, 163, 21), (2, 140, 105), (1, 124, 140), (0, 87, 146), (1, 79, 157), (102, 61, 140), (137, 44, 114)],
+    "CWD":[(159, 26, 50), (166, 58, 26), (170, 102, 2), (164, 143, 1), (112, 125, 1), (0, 111, 61), (1, 97, 92), (2, 81, 110), (1, 63, 116), (51, 51, 114), (88, 37, 95), (128, 30, 75), (100, 41, 45), (110, 54, 37), (110, 74, 24), (106, 94, 26), (83, 85, 22), (24, 80, 55), (0, 68, 65), (1, 66, 81), (19, 51, 76), (48, 45, 76), (65, 41, 67), (92, 43, 62), (60, 47, 46), (66, 60, 47), (65, 59, 46), (38, 52, 52), (44, 48, 67), (38, 40, 48), (45, 41, 44)]
+}
 
 class SimilarityModel:
     def __init__(self,
@@ -43,7 +55,7 @@ class SimilarityModel:
         self.cosine_similarity_model = lambda x, y: (F.cosine_similarity(x, y)+1)/2
         self.l1_similarity_model = lambda x, y: F.tanh(1/(F.l1_loss(x, y) + (1e-8)))
 
-        self.personal_color_type = ["WSB", "WSL", "WAD", "WAM", "CSL", "CSM", "CWB", "CWD"]
+        self.personal_color_type = list(PERSONAL_COLOR_RGB.keys())
 
         self.alpha = alpha
 
@@ -103,15 +115,21 @@ class SimilarityModel:
         return self.personal_color_type[ans]
 
 
-    def getSimilarity(self, user_feature, target_input, type, personal_color: torch.tensor):
+    def getSimilarity(self, user_feature, target_input, type: str, personal_color: str):
         target_feature = torch.load(target_input, map_location=self.device)
 
         last_activation_volume_similarity = self.cosine_similarity_model(
             torch.flatten(user_feature[type][LAST_ACTIVATION_VOLUME]),
             torch.flatten(target_feature[type][LAST_ACTIVATION_VOLUME]))
+
         gram_matrix_similarity = self.l1_similarity_model(user_feature[type][GRAM_MATRIX],
                                                           target_feature[type][GRAM_MATRIX])
-        personal_color_similarity = self.l1_similarity_model(target_feature[type][AVERAGE_RGB], personal_color)
+
+        personal_color_rgb = PERSONAL_COLOR_RGB[personal_color] + (LOWER_DEFAULT_COLOR if type=="lower" else [])
+        personal_color_similarity = self.l1_similarity_model(target_feature[type][AVERAGE_RGB], torch.tensor(personal_color_rgb[0]))
+        for rgb in personal_color_rgb[1:]:
+            new_sim = self.l1_similarity_model(target_feature[type][AVERAGE_RGB], torch.tensor(rgb))
+            personal_color_similarity = max(personal_color_similarity, new_sim)
 
         final_similarity = last_activation_volume_similarity * self.alpha[0] + gram_matrix_similarity * self.alpha[1] + personal_color_similarity * self.alpha[3]
         final_similarity /= sum(self.alpha)
@@ -119,14 +137,17 @@ class SimilarityModel:
         return final_similarity
 
 
-    def __call__(self, user_inputs, type, personal_color, k=5):
+    def __call__(self, user_inputs, type, personal_color=None, k=5):
+        if personal_color==None:
+            personal_color = self.getPersonalColor(user_inputs)
+
         user_features = [self.featuring_model(user_input) for user_input in user_inputs]
 
         similarity_result = {path:0.0 for path in self.recommended[type]}
 
         for user_feature in user_features:
             for target_input in self.recommended[type]:
-                similarity_result[target_input] += self.getSimilarity(user_feature, target_input, type, torch.tensor(personal_color))
+                similarity_result[target_input] += self.getSimilarity(user_feature, target_input, type, personal_color)
 
         return [k for k, v in sorted(similarity_result.items(), key=lambda item: item[1], reverse=True)][:k]
 
