@@ -8,7 +8,7 @@ from torchvision.transforms.functional import to_pil_image, crop
 import torch.nn as nn
 from typing import *
 from colorsys import rgb_to_hsv, hsv_to_rgb
-from pipeline.FeaturingModel import FeaturingModel
+from pipeline.FeaturingModel import FeaturingModel, ClothClassificationModel
 
 LAST_ACTIVATION_VOLUME = "last_activation_volume"
 GRAM_MATRIX = "gram_matrix"
@@ -52,7 +52,7 @@ class SimilarityModel:
         self.featuring_model = featuring_model
         self.featuring_model.changeDevice(useGPU)
 
-        self.cosine_similarity_model = lambda x, y: (F.cosine_similarity(x, y)+1)/2
+        self.cosine_similarity_model = lambda x, y: (F.cosine_similarity(x, y, dim=0)+1)/2
         self.l1_similarity_model = lambda x, y: F.tanh(1/(F.l1_loss(x, y) + (1e-8)))
 
         self.personal_color_type = list(PERSONAL_COLOR_RGB.keys())
@@ -61,10 +61,11 @@ class SimilarityModel:
 
 
     def getPersonalColor(self, user_input_features):
-        average_rgb = user_input_features[0]["average_rgb"]
-        for feature in user_input_features[1:]:
-            average_rgb += feature["average_rgb"]
-        average_rgb /= len(user_input_features)
+        average_rgb = user_input_features[0]["skin"][AVERAGE_RGB]
+        if len(user_input_features) > 1:
+            for feature in user_input_features[1:]:
+                average_rgb += feature["skin"][AVERAGE_RGB]
+            average_rgb /= len(user_input_features)
         average_rgb = average_rgb.tolist()
 
         average_hsv = rgb_to_hsv(*average_rgb)
@@ -131,30 +132,32 @@ class SimilarityModel:
             new_sim = self.l1_similarity_model(target_feature[type][AVERAGE_RGB], torch.tensor(rgb))
             personal_color_similarity = max(personal_color_similarity, new_sim)
 
-        final_similarity = last_activation_volume_similarity * self.alpha[0] + gram_matrix_similarity * self.alpha[1] + personal_color_similarity * self.alpha[3]
+        final_similarity = last_activation_volume_similarity * self.alpha[0] + gram_matrix_similarity * self.alpha[1] + personal_color_similarity * self.alpha[2]
         final_similarity /= sum(self.alpha)
 
         return final_similarity
 
 
     def __call__(self, user_inputs, type, personal_color=None, k=5):
-        if personal_color==None:
-            personal_color = self.getPersonalColor(user_inputs)
-
         user_features = [self.featuring_model(user_input) for user_input in user_inputs]
+
+        if personal_color==None:
+            personal_color = self.getPersonalColor(user_features)
 
         similarity_result = {path:0.0 for path in self.recommended[type]}
 
         for user_feature in user_features:
             for target_input in self.recommended[type]:
-                similarity_result[target_input] += self.getSimilarity(user_feature, target_input, type, personal_color)
+                similarity_result[target_input] += self.getSimilarity(user_feature, target_input, type, personal_color).to(self.cpu_device).item()
 
-        return [k for k, v in sorted(similarity_result.items(), key=lambda item: item[1], reverse=True)][:k], similarity_result
+        sorted_similarity_result = sorted(similarity_result.items(), key=lambda item: item[1], reverse=True)
+
+        return [k for k, v in sorted_similarity_result][:k], sorted_similarity_result
 
 
 if __name__=="__main__":
     test_recommended = {
-        "upper":[],
+        "upper":[f"../test/features/feature{i}.pt" for i in range(0, 14+1)],
         "lower":[],
     }
     model = SimilarityModel(test_recommended, FeaturingModel())

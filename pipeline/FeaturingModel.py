@@ -7,6 +7,7 @@ from torchvision.transforms.functional import to_pil_image, crop
 import torch.nn as nn
 from transformers import SegformerImageProcessor, AutoModelForSemanticSegmentation
 from typing import *
+from copy import deepcopy
 
 from pipeline.Unnormaliz import UnNormalize
 
@@ -143,9 +144,9 @@ class FeaturingModel:
 
         # 분할 사진 Feature 추출 - 옷
         result = {}
-        PART_LABEL = CLOTHES_PART_LABEL
+        PART_LABEL = deepcopy(CLOTHES_PART_LABEL)
         if not only_clothes:
-            PART_LABEL += BODY_PART_LABEL
+            PART_LABEL.update(BODY_PART_LABEL)
 
         for name, labels in PART_LABEL.items():
             features = {}
