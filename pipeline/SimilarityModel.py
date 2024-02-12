@@ -11,10 +11,9 @@ from enum import Enum
 from colorsys import rgb_to_hsv, hsv_to_rgb
 from pipeline.FeaturingModel import FeaturingModel, ClothClassificationModel
 
-class FeatureData(Enum):
-    LAST_ACTIVATION_VOLUME = "last_activation_volume"
-    GRAM_MATRIX = "gram_matrix"
-    AVERAGE_RGB = "average_rgb"
+LAST_ACTIVATION_VOLUME = "last_activation_volume"
+GRAM_MATRIX = "gram_matrix"
+AVERAGE_RGB = "average_rgb"
 
 LOWER_DEFAULT_COLOR = [(0, 0, 0), (255, 255, 255), (156, 156, 155), (217, 217, 215), (83, 86, 91), (254, 255, 239), (0, 31, 98), (61, 63, 107), (97, 134, 176), (38, 58, 84), (35, 40, 51), (33, 35, 34)]
 PERSONAL_COLOR_RGB = {
@@ -62,10 +61,11 @@ class SimilarityModel:
 
 
     def getPersonalColor(self, user_input_features):
-        average_rgb = user_input_features[0]["skin"][FeatureData.AVERAGE_RGB]
+        print(user_input_features[0]["skin"].keys())
+        average_rgb = user_input_features[0]["skin"][AVERAGE_RGB]
         if len(user_input_features) > 1:
             for feature in user_input_features[1:]:
-                average_rgb += feature["skin"][FeatureData.AVERAGE_RGB]
+                average_rgb += feature["skin"][AVERAGE_RGB]
             average_rgb /= len(user_input_features)
         average_rgb = average_rgb.tolist()
 
@@ -121,16 +121,16 @@ class SimilarityModel:
         target_feature = torch.load(target_input, map_location=self.device)
 
         last_activation_volume_similarity = self.cosine_similarity_model(
-            torch.flatten(user_feature[type][FeatureData.LAST_ACTIVATION_VOLUME]),
-            torch.flatten(target_feature[type][FeatureData.LAST_ACTIVATION_VOLUME]))
+            torch.flatten(user_feature[type][LAST_ACTIVATION_VOLUME]),
+            torch.flatten(target_feature[type][LAST_ACTIVATION_VOLUME]))
 
-        gram_matrix_similarity = self.l1_similarity_model(user_feature[type][FeatureData.GRAM_MATRIX],
-                                                          target_feature[type][FeatureData.GRAM_MATRIX])
+        gram_matrix_similarity = self.l1_similarity_model(user_feature[type][GRAM_MATRIX],
+                                                          target_feature[type][GRAM_MATRIX])
 
         personal_color_rgb = PERSONAL_COLOR_RGB[personal_color] + (LOWER_DEFAULT_COLOR if type=="lower" else [])
-        personal_color_similarity = self.l1_similarity_model(target_feature[type][FeatureData.AVERAGE_RGB], torch.tensor(personal_color_rgb[0]))
+        personal_color_similarity = self.l1_similarity_model(target_feature[type][AVERAGE_RGB], torch.tensor(personal_color_rgb[0]))
         for rgb in personal_color_rgb[1:]:
-            new_sim = self.l1_similarity_model(target_feature[type][FeatureData.AVERAGE_RGB], torch.tensor(rgb))
+            new_sim = self.l1_similarity_model(target_feature[type][AVERAGE_RGB], torch.tensor(rgb))
             personal_color_similarity = max(personal_color_similarity, new_sim)
 
         final_similarity = last_activation_volume_similarity * self.alpha[0] + gram_matrix_similarity * self.alpha[1] + personal_color_similarity * self.alpha[2]
