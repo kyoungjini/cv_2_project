@@ -7,15 +7,16 @@ from torchvision import datasets, models, transforms
 from torchvision.transforms.functional import to_pil_image, crop
 import torch.nn as nn
 from typing import *
+from enum import Enum
 from colorsys import rgb_to_hsv, hsv_to_rgb
 from pipeline.FeaturingModel import FeaturingModel, ClothClassificationModel
 
-LAST_ACTIVATION_VOLUME = "last_activation_volume"
-GRAM_MATRIX = "gram_matrix"
-AVERAGE_RGB = "average_rgb"
+class FeatureData(Enum):
+    LAST_ACTIVATION_VOLUME = "last_activation_volume"
+    GRAM_MATRIX = "gram_matrix"
+    AVERAGE_RGB = "average_rgb"
 
 LOWER_DEFAULT_COLOR = [(0, 0, 0), (255, 255, 255), (156, 156, 155), (217, 217, 215), (83, 86, 91), (254, 255, 239), (0, 31, 98), (61, 63, 107), (97, 134, 176), (38, 58, 84), (35, 40, 51), (33, 35, 34)]
-
 PERSONAL_COLOR_RGB = {
     "WSB":[(215, 86, 116), (240, 95, 86), (252, 141, 60), (249, 187, 43), (217, 199, 27), (119, 187, 76), (3, 165, 131), (1, 148, 160), (1, 125, 175), (77, 115, 186), (139, 99, 172), (171, 87, 146), (181, 24, 78), (221, 55, 55), (230, 109, 0), (238, 172, 1), (201, 187, 1), (74, 163, 21), (2, 140, 105), (1, 124, 140), (0, 87, 146), (1, 79, 157), (102, 61, 140), (137, 44, 114)],
     "WSL":[(234, 185, 186), (233, 186, 170), (240, 205, 170), (240, 225, 182), (216, 214, 168), (164, 207, 183), (158, 205, 201), (165, 202, 216), (168, 183, 206), (183, 179, 204), (198, 175, 196), (223, 188, 199), (243, 140, 143), (255, 158, 125), (251, 184, 105), (237, 211, 103), (203, 202, 96), (115, 200, 156), (63, 171, 165), (82, 166, 192), (100, 145, 192), (142, 134, 189), (172, 126, 172), (217, 129, 149)],
@@ -29,10 +30,10 @@ PERSONAL_COLOR_RGB = {
 
 class SimilarityModel:
     def __init__(self,
-                 recommended,
+                 recommended: Dict[str, List[str]],
                  featuring_model: FeaturingModel,
                  useGPU: bool = False,
-                 alpha: List[int] = [1, 1, 1]):
+                 alpha: Tuple[int, int, int] = (1, 1, 1)):
         """
         유사도를 계산하여 추천 랭킹을 받는 클래스의 생성자입니다.
 
@@ -61,10 +62,10 @@ class SimilarityModel:
 
 
     def getPersonalColor(self, user_input_features):
-        average_rgb = user_input_features[0]["skin"][AVERAGE_RGB]
+        average_rgb = user_input_features[0]["skin"][FeatureData.AVERAGE_RGB]
         if len(user_input_features) > 1:
             for feature in user_input_features[1:]:
-                average_rgb += feature["skin"][AVERAGE_RGB]
+                average_rgb += feature["skin"][FeatureData.AVERAGE_RGB]
             average_rgb /= len(user_input_features)
         average_rgb = average_rgb.tolist()
 
@@ -120,16 +121,16 @@ class SimilarityModel:
         target_feature = torch.load(target_input, map_location=self.device)
 
         last_activation_volume_similarity = self.cosine_similarity_model(
-            torch.flatten(user_feature[type][LAST_ACTIVATION_VOLUME]),
-            torch.flatten(target_feature[type][LAST_ACTIVATION_VOLUME]))
+            torch.flatten(user_feature[type][FeatureData.LAST_ACTIVATION_VOLUME]),
+            torch.flatten(target_feature[type][FeatureData.LAST_ACTIVATION_VOLUME]))
 
-        gram_matrix_similarity = self.l1_similarity_model(user_feature[type][GRAM_MATRIX],
-                                                          target_feature[type][GRAM_MATRIX])
+        gram_matrix_similarity = self.l1_similarity_model(user_feature[type][FeatureData.GRAM_MATRIX],
+                                                          target_feature[type][FeatureData.GRAM_MATRIX])
 
         personal_color_rgb = PERSONAL_COLOR_RGB[personal_color] + (LOWER_DEFAULT_COLOR if type=="lower" else [])
-        personal_color_similarity = self.l1_similarity_model(target_feature[type][AVERAGE_RGB], torch.tensor(personal_color_rgb[0]))
+        personal_color_similarity = self.l1_similarity_model(target_feature[type][FeatureData.AVERAGE_RGB], torch.tensor(personal_color_rgb[0]))
         for rgb in personal_color_rgb[1:]:
-            new_sim = self.l1_similarity_model(target_feature[type][AVERAGE_RGB], torch.tensor(rgb))
+            new_sim = self.l1_similarity_model(target_feature[type][FeatureData.AVERAGE_RGB], torch.tensor(rgb))
             personal_color_similarity = max(personal_color_similarity, new_sim)
 
         final_similarity = last_activation_volume_similarity * self.alpha[0] + gram_matrix_similarity * self.alpha[1] + personal_color_similarity * self.alpha[2]
@@ -138,7 +139,22 @@ class SimilarityModel:
         return final_similarity
 
 
-    def __call__(self, user_inputs, type, personal_color=None, k=5):
+    def __call__(self,
+                 user_inputs: List[Image.Image],
+                 type: Literal["upper", "lower"],
+                 k: int = 5,
+                 personal_color: Optional[str] = None):
+        '''
+        유저 입력을 토대로 유사도를 계산하여 상위 k개를 반환하는 함수입니다.
+
+        :param user_inputs: Pillow의 Image 객체로 구성된 List. 유저의 사진이 업로드 되어야 한다.
+        :param type: 추천받고자 하는 부분이 상의라면 "upper", 하의라면 "lower"
+        :param personal_color: 퍼스널 컬러를 유저가 입력했다면 해당 색상을 넘겨주고, 없다면 None으로 놔두면 자동으로 퍼스널 컬러를 추출해준다.
+                                반드시 PERSONAL_COLOR_RGB의 key 중 하나로 입력이 되어야 한다.
+        :param k: 유사도 기준 상위 몇개의 이미지를 반환할 것인지
+
+        :return: 유사도 기준 상위 k개의 이미지 파일 경로, 추천 대상 상품들의 유사도 배열
+        '''
         user_features = [self.featuring_model(user_input) for user_input in user_inputs]
 
         if personal_color==None:

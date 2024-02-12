@@ -9,7 +9,7 @@ from transformers import SegformerImageProcessor, AutoModelForSemanticSegmentati
 from typing import *
 from copy import deepcopy
 
-from pipeline.Unnormaliz import UnNormalize
+from pipeline.Unnormalize import UnNormalize
 
 
 CLASS_NUM = 20
@@ -72,6 +72,14 @@ class FeaturingModel:
                  classifier_path: str = "./checkpoint/classifier_efficientnetb0.pt",
                  classifier_input_size: int = 224
                  ):
+        '''
+        특징 추출 모델
+        
+        :param useGPU: 연산에 GPU를 이용할 것인가. False라면 CPU만 이용, True라면 GPU를 메인으로 이용.
+        :param segformer_path: 의상 분할 모델의 경로 (건드리지 말것)
+        :param classifier_path: 의상 분류 모델의 경로 (경로 이상하면 수정)
+        :param classifier_input_size: 의상 분류 모델의 학습할 때 적용했던 Image Size (건드리지 말것)
+        '''
         self.cpu_device = torch.device("cpu")
         self.device = torch.device("cpu")
         if useGPU and torch.cuda.is_available():
