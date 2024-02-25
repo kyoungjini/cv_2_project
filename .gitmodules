@@ -1,0 +1,6 @@
+[submodule "coordi-frontend"]
+	path = coordi-frontend
+	url = https://github.com/dltmddus02/coordi-frontend
+[submodule "coordi-backend"]
+	path = coordi-backend
+	url = https://github.com/dltmddus02/coordi-backend
